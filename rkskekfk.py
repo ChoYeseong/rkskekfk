@@ -77,15 +77,17 @@ def main():
     page = st.sidebar.selectbox("이동할 페이지 선택", ["홈", "운동 추천", "기록 보기"])
 
     if page == "홈":
-        user_data = get_user_input()
+        user_data = get_user_input()  # 올바른 위치
         if user_data:
             exercises = recommend_exercise(user_data["목표"])
             st.success(f"{user_data['이름']}님을 위한 추천 운동")
-            for ex in exercises:
-                st.write(f"- {ex}")
+
+            df = pd.DataFrame(exercises)
+            st.table(df)
+
             if st.button("오늘 운동 완료"):
                 for ex in exercises:
-                    save_record(ex)
+                    save_record(f"{ex['이름']} - {ex['세트']}세트 x {ex['반복']}회 ({ex['무게']})")
                 st.success("운동 기록이 저장되었습니다!")
 
     elif page == "기록 보기":
