@@ -39,7 +39,18 @@ def recommend_exercise(goal):
             {"이름": "스트레칭", "세트": 2, "반복": 15, "무게": "없음"},
             {"이름": "걷기", "세트": 1, "반복": 30, "무게": "없음 (분 단위)"}
         ] 
-        
+        if user_data:
+    exercises = recommend_exercise(user_data["목표"])
+    st.success(f"{user_data['이름']}님을 위한 추천 운동")
+
+    df = pd.DataFrame(exercises)
+    st.table(df)  # 표로 출력
+
+    if st.button("오늘 운동 완료"):
+        for ex in exercises:
+            save_record(f"{ex['이름']} - {ex['세트']}세트 x {ex['반복']}회 ({ex['무게']})")
+        st.success("운동 기록이 저장되었습니다!")
+
     
 
 # 운동 기록 저장
