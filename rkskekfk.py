@@ -1,6 +1,3 @@
-# 필요한 라이브러리 설치
-# pip install streamlit pandas matplotlib
-
 import streamlit as st
 import pandas as pd
 import os
@@ -18,7 +15,7 @@ def get_user_input():
         return {"이름": name, "나이": age, "키": height, "몸무게": weight, "목표": goal}
     return None
 
-# 운동 추천 (요청하신 대로 수정 반영)
+# 운동 추천
 def recommend_exercise(goal):
     if goal == "체중 감량":
         return [
@@ -39,27 +36,27 @@ def recommend_exercise(goal):
             {"이름": "걷기", "세트": 1, "반복": 30, "거리": "8km"}
         ]
 
-# 운동 기록 저장
+# 운동 기록 저장 (날짜+시간 저장)
 def save_record(exercise):
-    today = datetime.now().strftime("%Y-%m-%d")
-    df = pd.DataFrame([[today, exercise]], columns=["날짜", "운동"])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 날짜와 시간 포함
+    df = pd.DataFrame([[now, exercise]], columns=["일시", "운동"])
     if os.path.exists("log.csv"):
         df.to_csv("log.csv", mode='a', header=False, index=False)
     else:
         df.to_csv("log.csv", index=False)
 
-# 기록 시각화
+# 기록 시각화 및 상세 보기 (시간 포함된 일시 표시)
 def show_progress():
     st.title("운동 기록 보기")
     if os.path.exists("log.csv"):
         df = pd.read_csv("log.csv")
-        df["날짜"] = pd.to_datetime(df["날짜"])
-        count_by_day = df.groupby("날짜").count()
-        st.subheader("운동 기록 그래프")
-        st.line_chart(count_by_day)
+        df["일시"] = pd.to_datetime(df["일시"])
+        count_by_day = df.groupby(df["일시"].dt.date).count()
+        st.subheader("일별 운동 기록 개수")
+        st.line_chart(count_by_day["운동"])
 
-        st.subheader("운동 기록 상세")
-        st.dataframe(df)
+        st.subheader("상세 운동 기록")
+        st.dataframe(df.sort_values(by="일시", ascending=False).reset_index(drop=True))
     else:
         st.write("운동 기록이 없습니다.")
 
@@ -87,7 +84,6 @@ def main():
 
             if st.button("오늘 운동 완료"):
                 for ex in exercises:
-                    # 기록 문자열 만들기 (거리/개수/무게 중 있는 필드 사용)
                     details = ""
                     if "거리" in ex:
                         details = ex["거리"]
