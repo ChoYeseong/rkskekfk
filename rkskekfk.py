@@ -18,7 +18,7 @@ def get_user_input():
         return {"이름": name, "나이": age, "키": height, "몸무게": weight, "목표": goal}
     return None
 
-# 운동 추천
+# 운동 추천 (요청하신 대로 수정 반영)
 def recommend_exercise(goal):
     if goal == "체중 감량":
         return [
@@ -50,12 +50,27 @@ def save_record(exercise):
 
 # 기록 시각화
 def show_progress():
+    st.title("운동 기록 보기")
     if os.path.exists("log.csv"):
         df = pd.read_csv("log.csv")
         df["날짜"] = pd.to_datetime(df["날짜"])
         count_by_day = df.groupby("날짜").count()
         st.subheader("운동 기록 그래프")
         st.line_chart(count_by_day)
+
+        st.subheader("운동 기록 상세")
+        st.dataframe(df)
+    else:
+        st.write("운동 기록이 없습니다.")
+
+# 운동 추천 페이지 내용
+def exercise_recommendation_page():
+    st.title("운동 추천 페이지")
+    goal = st.selectbox("목표를 선택하세요", ["체중 감량", "근육 증가", "건강 유지"])
+    if st.button("추천 운동 보기"):
+        exercises = recommend_exercise(goal)
+        df = pd.DataFrame(exercises)
+        st.table(df)
 
 # 메인 앱 흐름
 def main():
@@ -72,13 +87,24 @@ def main():
 
             if st.button("오늘 운동 완료"):
                 for ex in exercises:
-                    record = f"{ex['이름']} - {ex['세트']}세트 x {ex['반복']}회 ({ex['무게']})"
+                    # 기록 문자열 만들기 (거리/개수/무게 중 있는 필드 사용)
+                    details = ""
+                    if "거리" in ex:
+                        details = ex["거리"]
+                    elif "개수" in ex:
+                        details = ex["개수"]
+                    elif "무게" in ex:
+                        details = ex["무게"]
+
+                    record = f"{ex['이름']} - {ex['세트']}세트 x {ex['반복']}회 ({details})"
                     save_record(record)
                 st.success("운동 기록이 저장되었습니다!")
+
+    elif page == "운동 추천":
+        exercise_recommendation_page()
 
     elif page == "기록 보기":
         show_progress()
 
-# 앱 시작
 if __name__ == "__main__":
     main()
