@@ -36,7 +36,7 @@ def recommend_exercise(goal):
             {"이름": "걷기", "세트": 1, "반복": 30, "거리": "8km"}
         ]
 
-# 운동 기록 저장
+# 운동 기록 저장 함수
 def save_record(exercise):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     df = pd.DataFrame([[now, exercise]], columns=["일시", "운동"])
@@ -44,9 +44,8 @@ def save_record(exercise):
         df.to_csv("log.csv", mode='a', header=False, index=False)
     else:
         df.to_csv("log.csv", index=False)
-    st.write(f"기록 저장 완료: {now} - {exercise}")  # 저장 확인용 로그
 
-# 기록 시각화 및 상세 보기
+# 운동 기록 보기
 def show_progress():
     st.title("운동 기록 보기")
     if os.path.exists("log.csv"):
@@ -61,6 +60,7 @@ def show_progress():
     else:
         st.write("운동 기록이 없습니다.")
 
+# 운동 추천 페이지
 def exercise_recommendation_page():
     st.title("운동 추천 페이지")
     goal = st.selectbox("목표를 선택하세요", ["체중 감량", "근육 증가", "건강 유지"])
@@ -73,9 +73,6 @@ def main():
     st.sidebar.title("운동 관리 메뉴")
     page = st.sidebar.selectbox("이동할 페이지 선택", ["홈", "운동 추천", "기록 보기"])
 
-    if "운동완료" not in st.session_state:
-        st.session_state["운동완료"] = False
-
     if page == "홈":
         user_data = get_user_input()
         if user_data:
@@ -84,10 +81,8 @@ def main():
             df = pd.DataFrame(exercises)
             st.table(df)
 
+            # 운동 완료 버튼 - 클릭 시 바로 기록 저장
             if st.button("오늘 운동 완료"):
-                st.session_state["운동완료"] = True
-
-            if st.session_state["운동완료"]:
                 for ex in exercises:
                     details = ""
                     if "거리" in ex:
@@ -100,8 +95,6 @@ def main():
                     record = f"{ex['이름']} - {ex['세트']}세트 x {ex['반복']}회 ({details})"
                     save_record(record)
                 st.success("운동 기록이 저장되었습니다!")
-                # 저장 후 다시 False로 초기화해서 중복 저장 방지
-                st.session_state["운동완료"] = False
 
     elif page == "운동 추천":
         exercise_recommendation_page()
